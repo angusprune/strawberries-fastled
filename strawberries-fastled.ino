@@ -14,6 +14,7 @@ CRGB display[NUM_LEDS];
 
 void setup() {
 	FastLED.addLeds<WS2801, DATA_PIN, CLOCK_PIN, RGB>(display, NUM_LEDS);
+	fill_solid(leds, NUM_LEDS, CRGB::Black);
 }
 
 
@@ -68,19 +69,76 @@ void simpleDripFill(CRGB color, int wait){
 	}
 }
 
-void longDripFill(CHSV color, uint16_t length, int wait){
-	uint16_t drip;
+void longDrip(CHSV color, uint16_t length, int wait){
+	CRGB gradient[length + 1];
 	CHSV black;
 	black.s = 0;
 	black.v = 0;
-	for (drip=0; drip < (NUM_LEDS + length); drip++){
-		fill_gradient (leds, drip, black, drip + length, color);
-		show();
-		delay(wait);
-		leds[drip] = CRGB::Black;
+	int i;
+	
+	fill_gradient (gradient, 0, black, length, color);
+	for (i=0; i < NUM_LEDS + length + 1 ; i++){
+		if(i <= length){
+			memmove (&leds[1], &leds[0], (sizeof(CRGB) * i));
+			memcpy(&leds[0], &gradient[length - i], sizeof(CRGB));
+			show();
+			delay(wait);
+		} else if (i < NUM_LEDS + 1) {
+			memmove (&leds[i-length], &leds[i-length-1], sizeof(gradient));
+			show();
+			delay(wait);
+		} else{
+			memmove (&leds[i-length], &leds[i-length-1], (sizeof(CRGB) * (NUM_LEDS + length - i)));
+			show();
+			delay(wait);
+		}
+	}
+}
+
+void longDripFill(CHSV color, uint16_t length, int fillRate, int wait){
+	CRGB gradient[length + 1];
+	CHSV black;
+	black.s = 0;
+	black.v = 0;
+	int i;
+	int i2;
+	int fall = NUM_LEDS;
+	int full = 0;
+	
+	while (fall > 0){
+		fill_gradient (gradient, 0, black, length, color);
+		for (i=0; i < fall + length + 1; i++){
+			if(i <= length){
+				memmove (&leds[1], &leds[0], (sizeof(CRGB) * i));
+				memcpy(&leds[0], &gradient[length - i], sizeof(CRGB));
+				show();
+				delay(wait);
+			} else if (i < (fall - fillRate + 1)) {
+				memmove (&leds[i-length], &leds[i-length-1], sizeof(gradient));
+				show();
+				delay(wait);
+			} else if ( i < (fall + fillRate + 1)){
+				memmove (&leds[i-length], &leds[i-length-1], (sizeof(CRGB) * (fall + length - i)));
+				for (i2=0; i2 < fillRate; i2++){
+					leds[NUM_LEDS - full - i2] = color;
+				}
+				show();
+				delay(wait);
+			} else {
+
+			}
+			
+		}
+		full = full + fillRate;
+		fall = NUM_LEDS - full;
+		for (i=0; i < full; i++){
+			leds[NUM_LEDS-i] = color;
+		}
 		
 	}
 }
+
+
 
 void loop () {
 
@@ -95,12 +153,13 @@ int i;
 }*/
 fill_solid(leds, NUM_LEDS, CRGB::Black);
 CHSV color;
-color.h = 100;
+color.h = 150;
 color.s = 255;
-color.v = 255;
-longDripFill(color, 10, 100);
+color.v = 100;
+longDripFill(color, 10, 7, 20);
 rainbowWipe(50,10,10);
 colorWipe(CRGB::Green,10);
 colorWipe(CRGB::Blue,10);
+
 
 }
