@@ -45,6 +45,42 @@ void rainbowWipe(int hue, int shift, int wait){
 	}
 }
 
+//wipes a single colour from a CRGB
+void colorWipe(CRGB color, int wait){
+	int i;
+	for (i=0; i < NUM_LEDS; i++){
+		fill_solid(leds, i+1, color);
+		show();
+		delay(wait);
+	}
+}
+
+void simpleDripFill(CRGB color, int wait){
+	int fill;
+	for (fill=0; fill < NUM_LEDS; fill++){
+		int drip;
+		for (drip=0; drip < (NUM_LEDS - fill); drip++){
+			leds[drip] = color;
+			show();
+			leds[drip] = CRGB::Black;
+		}
+		leds[NUM_LEDS - fill] = color;
+	}
+}
+
+void longDripFill(CHSV color, uint16_t length, int wait){
+	uint16_t drip;
+	CHSV black;
+	black.s = 0;
+	black.v = 0;
+	for (drip=0; drip < (NUM_LEDS + length); drip++){
+		fill_gradient (leds, drip, black, drip + length, color);
+		show();
+		delay(wait);
+		leds[drip] = CRGB::Black;
+		
+	}
+}
 
 void loop () {
 
@@ -58,9 +94,13 @@ int i;
 
 }*/
 fill_solid(leds, NUM_LEDS, CRGB::Black);
-rainbowWipe(50, 10, 50);
-//fill_rainbow(leds, NUM_LEDS, 50, 5);
-//show();
-delay(100);
-//fill_solid(leds, NUM_LEDS, CRGB::Black);
+CHSV color;
+color.h = 100;
+color.s = 255;
+color.v = 255;
+longDripFill(color, 10, 100);
+rainbowWipe(50,10,10);
+colorWipe(CRGB::Green,10);
+colorWipe(CRGB::Blue,10);
+
 }
