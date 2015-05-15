@@ -1,7 +1,7 @@
 #include "FastLED.h"
 
 //number of leds in strip
-#define NUM_LEDS 150
+#define NUM_LEDS 20
 
 //define data (yellow) and clock (green)
 #define DATA_PIN 2
@@ -95,6 +95,61 @@ void longDrip(CHSV color, uint16_t length, int wait){
 	}
 }
 
+
+
+void longDripFillFade(CHSV color, uint16_t length, int fillRate, int wait){
+	CRGB gradient[length + 1];
+	CHSV black;
+	black.s = 0;
+	black.v = 0;
+	int i;
+	int i2;
+	int fall = NUM_LEDS;
+	int full = 0;
+	
+	while (fall > 0){
+		fill_gradient (gradient, 0, black, length, color);
+		for (i=0; i <= fall + length ; i++){
+			if(i <= length){
+				memmove (&leds[1], &leds[0], (sizeof(CRGB) * i));
+				memcpy(&leds[0], &gradient[length - i], sizeof(CRGB));
+				show();
+				delay(wait);
+			} else if (i <= (fall - fillRate)) {
+				memmove (&leds[i-length], &leds[i-length-1], sizeof(gradient));
+				show();
+				delay(wait);
+			} else if ( i <= (fall + fillRate)){
+				memmove (&leds[i-length], &leds[i-length-1], (sizeof(CRGB) * (fall + length - i)));
+				for (i2=0; i2 < fillRate; i2++){
+					leds[NUM_LEDS - full - i2] = color;
+				}
+				show();
+				delay(wait);
+					if ( i = fall + fillRate){
+						fadeToBlackBy(leds, full, 10);
+					}
+			} else {
+
+			}
+			
+		}
+		
+		full = full + fillRate;
+		fall = NUM_LEDS - full;
+		
+		for (i=0; i < full; i++){
+			leds[NUM_LEDS-i] = color;
+			
+		
+		}
+		*/
+
+		
+	}
+}
+
+
 void longDripFill(CHSV color, uint16_t length, int fillRate, int wait){
 	CRGB gradient[length + 1];
 	CHSV black;
@@ -108,7 +163,8 @@ void longDripFill(CHSV color, uint16_t length, int fillRate, int wait){
 	while (fall > 0){
 		fill_gradient (gradient, 0, black, length, color);
 		for (i=0; i < fall + length + 1; i++){
-			if(i <= length){
+			
+if(i <= length){
 				memmove (&leds[1], &leds[0], (sizeof(CRGB) * i));
 				memcpy(&leds[0], &gradient[length - i], sizeof(CRGB));
 				show();
@@ -128,6 +184,7 @@ void longDripFill(CHSV color, uint16_t length, int fillRate, int wait){
 
 			}
 			
+			
 		}
 		full = full + fillRate;
 		fall = NUM_LEDS - full;
@@ -137,7 +194,6 @@ void longDripFill(CHSV color, uint16_t length, int fillRate, int wait){
 		
 	}
 }
-
 
 
 void loop () {
@@ -156,10 +212,10 @@ CHSV color;
 color.h = 150;
 color.s = 255;
 color.v = 100;
-longDripFill(color, 10, 7, 20);
-rainbowWipe(50,10,10);
+longDripFill(color, 2, 2, 100);
+//rainbowWipe(50,10,10);
 colorWipe(CRGB::Green,10);
-colorWipe(CRGB::Blue,10);
+//colorWipe(CRGB::Blue,10);
 
 
 }
